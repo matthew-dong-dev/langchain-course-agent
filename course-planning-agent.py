@@ -4,7 +4,8 @@ from langchain.tools.retriever import create_retriever_tool
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_community.tools import TavilySearchResults
 from langchain_community.vectorstores import FAISS
-from langchain.memory import ConversationBufferMemory
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain import hub
 from langchain.agents import create_tool_calling_agent
@@ -29,7 +30,7 @@ def create_retriever(urls: list[str]):
     return retriever
 
 def query_agent(user_input: str, agent_executor):
-    response = agent_executor.invoke({"input": user_input})
+    response = agent_executor.invoke({"input": user_input}, config={"configurable": {"session_id": "123"}})
     return response["output"] + "\n"
     
 def main():
@@ -44,10 +45,16 @@ def main():
     
     llm = ChatOpenAI(model="gpt-3.5-turbo")
     prompt = hub.pull("hwchase17/openai-functions-agent")
-    memory = ConversationBufferMemory(memory_key="chat_history")
+    memory = ChatMessageHistory(session_id="123")
     
     agent = create_tool_calling_agent(llm, tools, prompt)
-    agent_executor = AgentExecutor(agent=agent, tools=tools, checkpointer=memory, verbose=False)
+    agent_executor = AgentExecutor(agent=agent, tools=tools,verbose=False)
+    agent_with_chat_history = RunnableWithMessageHistory(
+        agent_executor,
+        lambda session_id: memory,
+        input_messages_key="input",
+        history_messages_key="chat_history"
+    )
 
     print("Hello, feel free to ask me questions about your course planning!")
     while True:
@@ -56,7 +63,7 @@ def main():
             print("Have a nice day!")
             break
         try:
-            agent_response = query_agent(user_input, agent_executor)
+            agent_response = query_agent(user_input, agent_with_chat_history)
             print(agent_response)
         except Exception as err:
             # log exception
