@@ -1,3 +1,8 @@
+from dotenv import load_dotenv
+import warnings
+import os
+warnings.filterwarnings('ignore') # just for demo
+load_dotenv()
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.tools.retriever import create_retriever_tool
@@ -10,9 +15,6 @@ from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain import hub
 from langchain.agents import create_tool_calling_agent
 from langchain.agents import AgentExecutor
-
-from dotenv import load_dotenv
-load_dotenv()
 
 def create_retriever(urls: list[str]):
     """
