@@ -40,10 +40,10 @@ def main():
     course_info_retriever_tool = create_retriever_tool(course_info_retriever, "Course_information", "Search for information about courses")
     instructor_retriever = create_retriever(["https://www.ratemyprofessors.com/professor/706268", "https://www.ratemyprofessors.com/professor/16984"])
     instructor_info_retriever_tool = create_retriever_tool(instructor_retriever, "Instructor_lookup", "Use this tool to get information about instructors or professors")
-    search = TavilySearchResults(max_results=2)
+    web_search = TavilySearchResults(max_results=2)
     
     # Set tools here - retreivers for course info and instructor info and external search  
-    tools = [course_info_retriever_tool, instructor_info_retriever_tool, search]
+    tools = [course_info_retriever_tool, instructor_info_retriever_tool, web_search]
     
     llm = ChatOpenAI(model="gpt-3.5-turbo")
     prompt = hub.pull("hwchase17/openai-functions-agent")
