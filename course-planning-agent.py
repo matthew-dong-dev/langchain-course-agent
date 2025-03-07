@@ -14,6 +14,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def create_retriever(urls: list[str]):
+    """
+    NOTE: Currently documents are just scraped webpages, would be replaced with clean tabular data from an api, or vector representations of courses and instructors can be generated from other models
+    """
     docs = []
     for url in urls:
         loader = WebBaseLoader(url)
@@ -35,13 +38,16 @@ def main():
     instructor_retriever = create_retriever(["https://www.ratemyprofessors.com/professor/706268", "https://www.ratemyprofessors.com/professor/16984"])
     instructor_info_retriever_tool = create_retriever_tool(instructor_retriever, "Instructor_lookup", "Use this tool to get information about instructors or professors")
     search = TavilySearchResults(max_results=2)
+    
+    # Set tools here - retreivers for course info and instructor info and external search  
     tools = [course_info_retriever_tool, instructor_info_retriever_tool, search]
+    
     llm = ChatOpenAI(model="gpt-3.5-turbo")
     prompt = hub.pull("hwchase17/openai-functions-agent")
     memory = ConversationBufferMemory(memory_key="chat_history")
     
     agent = create_tool_calling_agent(llm, tools, prompt)
-    agent_executor = AgentExecutor(agent=agent, tools=tools, checkpointer=memory, verbose=True)
+    agent_executor = AgentExecutor(agent=agent, tools=tools, checkpointer=memory, verbose=False)
 
     print("Hello, feel free to ask me questions about your course planning!")
     while True:
@@ -49,7 +55,12 @@ def main():
         if user_input.lower() in ["exit", "quit"]:
             print("Have a nice day!")
             break
-        print(query_agent(user_input, agent_executor))
+        try:
+            agent_response = query_agent(user_input, agent_executor)
+            print(agent_response)
+        except Exception as err:
+            # log exception
+            print("Sorry we're currently unavailable at the moment!  Please try again later")
 
 if __name__== "__main__":
     main()
