@@ -1,8 +1,8 @@
 from dotenv import load_dotenv
-import warnings
 import os
-warnings.filterwarnings('ignore') # just for demo
+import logging
 load_dotenv()
+logging.basicConfig(level=logging.ERROR, filename='agent.log', format='%(asctime)s - %(levelname)s - %(message)s')
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.tools.retriever import create_retriever_tool
@@ -17,9 +17,7 @@ from langchain.agents import create_tool_calling_agent
 from langchain.agents import AgentExecutor
 
 def create_retriever(urls: list[str]):
-    """
-    NOTE: Currently documents are just scraped webpages, would be replaced with clean tabular data from an api, or vector representations of courses and instructors can be generated from other models
-    """
+    # NOTE: Currently documents are just scraped webpages, would be replaced with clean tabular data from an api, or vector representations of courses and instructors can be generated from other models
     docs = []
     for url in urls:
         loader = WebBaseLoader(url)
@@ -68,7 +66,7 @@ def main():
             agent_response = query_agent(user_input, agent_with_chat_history)
             print(agent_response)
         except Exception as err:
-            # log exception
+            logging.error(f"Type error: {err}", exc_info=True)
             print("Sorry we're currently unavailable at the moment!  Please try again later")
 
 if __name__== "__main__":
